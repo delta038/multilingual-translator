@@ -16,12 +16,6 @@ jobs:
         with:
           python-version: '3.11' # 使用するPythonのバージョン
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.5'
-          channel: 'stable'
-
       - name: Install Dependencies
         run: |
           pip install flet googletrans
@@ -29,7 +23,7 @@ jobs:
       - name: Build Web
         run: |
           # yesコマンドを使って、すべての問いかけに'y'と答え続ける
-          yes y | flet build web mytranslator2.py --base-url /multilingual-translator/
+          yes y | flet build web --module-name mytranslator2 --base-url /multilingual-translator/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
