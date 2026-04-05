@@ -1,0 +1,32 @@
+name: Deploy Flet App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # mainブランチにプッシュされたときに起動
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # 使用するPythonのバージョン
+
+      - name: Install Dependencies
+        run: |
+          pip install flet, googletrans
+
+      - name: Build Web
+        run: |
+          flet build web --base-url /multilingual-translator/ mytranslator2.py
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+            folder: build/web # flet buildで生成されたフォルダ
+            branch: gh-pages # デプロイ先のブランチ
+
