@@ -22,7 +22,7 @@ jobs:
 
       - name: Build Web
         run: |
-          flet build web mytranslator2.py --base-url /multilingual-translator/
+          flet build web mytranslator2.py --base-url /multilingual-translator/ --no-input
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
