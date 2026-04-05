@@ -28,7 +28,8 @@ jobs:
 
       - name: Build Web
         run: |
-          flet build web mytranslator2.py --base-url /multilingual-translator/
+          # yesコマンドを使って、すべての問いかけに'y'と答え続ける
+          yes y | flet build web mytranslator2.py --base-url /multilingual-translator/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
