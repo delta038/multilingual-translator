@@ -18,7 +18,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install flet, googletrans
+          pip install flet googletrans
 
       - name: Build Web
         run: |
