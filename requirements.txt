@@ -1,2 +1,2 @@
 flet
-googletrans==3.1.0a0
+googletrans==4.0.2
