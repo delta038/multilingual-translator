@@ -29,8 +29,12 @@ async def main(page: ft.Page):
         page.update()
 
     page.add(
-            input_field,
-            ft.Button('翻訳', on_click=translate_click),
+            ft.Row(
+                controls=[
+                    input_field,
+                    ft.Button('翻訳', on_click=translate_click)
+                    ]
+                ),
             result_text,
             result_text2,
             result_text3
