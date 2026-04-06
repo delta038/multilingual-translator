@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base href="%FLUTTER_BASE_HREF%">
+    <meta charset="UTF-8">
+    <title>Multilingual Translator</title>
+    <style>
+      /* ローディング画面のスタイル */
+      #loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #ffffff;
+      }
+      .loader {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #2196F3; /* Flet/Flutterっぽい青 */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .text {
+        font-family: sans-serif;
+        margin-top: 15px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="loader"></div>
+      <div class="text">Now Loading...</div>
+    </div>
+    <script src="flutter.js" defer></script>
+  </body>
+</html>
