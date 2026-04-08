@@ -43,5 +43,19 @@
       <div class="text">Now Loading...</div>
     </div>
     <script src="flutter.js" defer></script>
+    <script>
+      window.addEventListener('load', function(ev) {
+        _flutter.loader.loadEntrypoint({
+          serviceWorker: {
+            serviceWorkerVersion: {{revised_service_worker_version}},
+          },
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      });
+    </script>
   </body>
 </html>
