@@ -13,6 +13,10 @@
         pythonModuleName: "mytranslator2",
         appPackageUrl: "assets/app/app.zip"
       };
+
+      flet.flutterAppLoaded = new Promise((resolve) => {
+        flet.flutterAppResolve = resolve;
+      });
     </script>
     <script src="python.js"></script>
     <style>
