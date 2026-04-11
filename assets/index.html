@@ -47,11 +47,17 @@
       window.addEventListener('load', function(ev) {
         _flutter.loader.loadEntrypoint({
           serviceWorker: {
-            serviceWorkerVersion: {{revised_service_worker_version}},
+            serviceWorkerVersion: "{{ revised_service_worker_version }}",
           },
           onEntrypointLoaded: function(engineInitializer) {
             engineInitializer.initializeEngine().then(function(appRunner) {
-              appRunner.runApp();
+              appRunner.runApp().then(function() {
+                // アプリが起動したらローディング画面を消す
+                var loading = documentById('loading');
+                if (loading) {
+                  loading.remove();
+                }
+              });
             });
           }
         });
