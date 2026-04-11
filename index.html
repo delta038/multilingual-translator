@@ -63,11 +63,16 @@
           onEntrypointLoaded: function(engineInitializer) {
             engineInitializer.initializeEngine().then(function(appRunner) {
               appRunner.runApp().then(function() {
-                // アプリが起動したらローディング画面を消す
-                var loading = document.getElementById('loading');
-                if (loading) {
-                  loading.remove();
-                }
+                // ここで即座に消さず、Fletの準備完了を待つ
+                flet.flutterAppLoaded.then(function() {
+                  var loading = document.getElementById('loading');
+                  if (loading) {
+                    // フェードアウトさせてから消す
+                    loading.style.transition = 'opacity 0.5s';
+                    loading.style.opacity = '0';
+                    setTimeout(() => loading.remove(), 500);
+                  }
+                });
               });
             });
           }
