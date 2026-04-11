@@ -53,7 +53,7 @@
             engineInitializer.initializeEngine().then(function(appRunner) {
               appRunner.runApp().then(function() {
                 // アプリが起動したらローディング画面を消す
-                var loading = documentById('loading');
+                var loading = document.getElementById('loading');
                 if (loading) {
                   loading.remove();
                 }
