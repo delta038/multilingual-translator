@@ -4,6 +4,17 @@
     <base href="%FLUTTER_BASE_HREF%">
     <meta charset="UTF-8">
     <title>Multilingual Translator</title>
+    <script>
+      var flet = {
+        pyodide: true,
+        webSocketEndpoint: "", // 静的配信(GitHub Pages)では空にする
+        entrypointBaseUrl: "%FLUTTER_BASE_HREF%",
+        assetBase: "%FLUTTER_BASE_HREF%",
+        pythonModuleName: "mytranslator2",
+        appPackageUrl: "assets/app/app.zip"
+      };
+    </script>
+    <script src="python.js"></script>
     <style>
       /* ローディング画面のスタイル */
       #loading {
