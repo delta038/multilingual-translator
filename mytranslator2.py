@@ -40,4 +40,4 @@ async def main(page: ft.Page):
             result_text3
             )
 
-ft.app(target=main)
+ft.run(main)
