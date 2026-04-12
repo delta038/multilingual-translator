@@ -12,19 +12,26 @@ def log(message: str):
 @ft.component
 def PromptForm(translate_async) -> ft.Control:
     prompt, set_prompt = ft.use_state('')
-
-    def clear():
-        set_prompt('')
+    is_progressing, set_is_progressing = ft.use_state(False)
 
     def update(new_prompt):
         set_prompt(new_prompt)
-        print(new_prompt)
+        log(f'{new_prompt=}')
 
     async def execute_async(e):
         log(f'[execute_async] called. {prompt=}')
-        # await translate_and_output_console_async(prompt)
+        
+        set_is_progressing(True)
         await translate_async(prompt)
-        clear()
+        set_is_progressing(False)
+
+    if is_progressing:
+        return ft.Row(
+                controls=[
+                    ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value), read_only=True),
+                    ft.ProgressRing()
+                    ]
+                )
 
     return ft.Row(
             controls=[
@@ -66,7 +73,7 @@ class TranslatedState:
 def TranslatedView(state: TranslatedState) -> ft.Control:
     log(f'[TranslatedView] rendered. translated={state.translated}')
     return ft.Column(
-            controls=[ft.Text(v) for k, v in state.translated.items()]
+            controls=[ft.Text(f'[{k}] {v}') for k, v in state.translated.items()]
             )
 
 @ft.component
