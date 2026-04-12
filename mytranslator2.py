@@ -1,5 +1,6 @@
 import flet as ft
 from googletrans import Translator
+import googletrans
 import asyncio
 from dataclasses import dataclass, field
 
@@ -69,6 +70,49 @@ class TranslatedState:
         except:
             return ''
 
+@ft.observable
+@dataclass
+class Languages:
+    value: set = field(default_factory=set)
+
+    def append(self, target: str):
+        self.value.add(target)
+
+    def delete(self, target: str):
+        self.value.discard(target)
+
+@ft.component
+def LanguagesSelectionForm(languages: Languages) -> ft.Control:
+    log(f'[LanguagesSelectionForm] rendered.')
+    
+    is_open_popup, set_is_open_popup = ft.use_state(False)
+    lang, set_lang = ft.use_state('')
+
+    def show_popup():
+        log(f'[LanguagesSelectionForm][show_popup] called.')
+        set_is_open_popup(True)
+
+    def close_popup():
+        log(f'[LanguagesSelectionForm][close_popup] called.')
+        set_is_open_popup(False)
+
+    def add():
+        log(f'[LanguagesSelectionForm][add] called.')
+        languages.append(lang)
+
+    if is_open_popup:
+        return ft.AlertDialog(
+                title=ft.Text('言語選択'),
+                content=ft.Row(
+                    [ft.Text('言語')]
+                    ),
+                open=True,
+                on_dismiss=lambda e: close_popup(),
+                )
+
+    return ft.IconButton(icon=ft.Icons.SETTINGS, on_click=lambda e: show_popup())
+
+
 @ft.component
 def TranslatedView(state: TranslatedState) -> ft.Control:
     log(f'[TranslatedView] rendered. translated={state.translated}')
@@ -79,11 +123,17 @@ def TranslatedView(state: TranslatedState) -> ft.Control:
 @ft.component
 def AppView() -> list[ft.Control]:
     translated, _ = ft.use_state(TranslatedState())
+    languages, _ = ft.use_state(Languages())
     log(f'[AppView] rendered. translated={translated.translated}')
 
     return [
             PromptForm(translated.translate_async),
-            TranslatedView(translated)
+            TranslatedView(translated),
+            ft.Dropdown(
+                width=220,
+                options=[ft.DropdownOption(key=k, text=v) for k, v in googletrans.LANGUAGES.items()]
+                ),
+            LanguagesSelectionForm(languages)
             ]
 
 ft.run(lambda page: page.render(AppView))
