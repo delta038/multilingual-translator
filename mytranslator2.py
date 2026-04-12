@@ -1,6 +1,37 @@
 import flet as ft
 from googletrans import Translator
 import asyncio
+from dataclasses import dataclass, field
+
+DEBUG = True
+
+def log(message: str):
+    if DEBUG:
+        print(message)
+
+@ft.component
+def PromptForm(translate_async) -> ft.Control:
+    prompt, set_prompt = ft.use_state('')
+
+    def clear():
+        set_prompt('')
+
+    def update(new_prompt):
+        set_prompt(new_prompt)
+        print(new_prompt)
+
+    async def execute_async(e):
+        log(f'[execute_async] called. {prompt=}')
+        # await translate_and_output_console_async(prompt)
+        await translate_async(prompt)
+        clear()
+
+    return ft.Row(
+            controls=[
+                ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value)),
+                ft.Button('翻訳', on_click=execute_async)
+                ]
+            )
 
 async def translate_async(translator, text, lang) -> str:
     # 個別の翻訳タスク
@@ -10,34 +41,54 @@ async def translate_async(translator, text, lang) -> str:
     except:
         return ''
 
-async def main(page: ft.Page):
+async def translate_and_output_console_async(prompt: str):
+    if not isinstance(prompt, str):
+        ValueError('Invalid argument type.')
+
     translator = Translator()
-    input_field = ft.TextField(label='日本語を入力')
-    result_text = ft.Text()
-    result_text2 = ft.Text()
-    result_text3 = ft.Text()
+    tasks = [translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
 
-    async def translate_click(e):
-        # 非同期で翻訳を実行
-        tasks = [translate_async(translator, input_field.value, lang) for lang in ['en', 'de', 'fr']]
+    results = await asyncio.gather(*tasks)
 
+    [print(result) for result in results]
+
+@ft.observable
+@dataclass
+class TranslatedState:
+    translated: dict = field(default_factory=dict)
+
+    async def translate_async(self, prompt: str):
+        log(f'[TranslatedState][translated_async] called. {prompt=}')
+        if not isinstance(prompt, str):
+            ValueError('Invalid argument type.')
+
+        translator = Translator()
+        tasks = [translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
         results = await asyncio.gather(*tasks)
 
-        result_text.value = results[0]
-        result_text2.value = results[1]
-        result_text3.value = results[2]
-        page.update()
+        log(f'[TranslatedState][translated_async] {results=}')
+        self.translated = {
+                'en': results[0],
+                'de': results[1],
+                'fr': results[2]
+                }
 
-    page.add(
-            ft.Row(
-                controls=[
-                    input_field,
-                    ft.Button('翻訳', on_click=translate_click)
-                    ]
-                ),
-            result_text,
-            result_text2,
-            result_text3
+@ft.component
+def TranslatedView(state: TranslatedState) -> ft.Control:
+    log(f'[TranslatedView] rendered. translated={state.translated}')
+    return ft.Column(
+            controls=[ft.Text(v) for k, v in state.translated.items()]
             )
 
-ft.run(main)
+@ft.component
+def AppView() -> list[ft.Control]:
+    translated, _ = ft.use_state(TranslatedState())
+    log(f'[AppView] rendered. translated={translated.translated}')
+
+    return [
+            PromptForm(translated.translate_async),
+            TranslatedView(translated)
+            ]
+
+
+ft.run(lambda page: page.render(AppView))
