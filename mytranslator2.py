@@ -33,25 +33,6 @@ def PromptForm(translate_async) -> ft.Control:
                 ]
             )
 
-async def translate_async(translator, text, lang) -> str:
-    # 個別の翻訳タスク
-    try:
-        result = await translator.translate(text, dest=lang)
-        return result.text
-    except:
-        return ''
-
-async def translate_and_output_console_async(prompt: str):
-    if not isinstance(prompt, str):
-        ValueError('Invalid argument type.')
-
-    translator = Translator()
-    tasks = [translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
-
-    results = await asyncio.gather(*tasks)
-
-    [print(result) for result in results]
-
 @ft.observable
 @dataclass
 class TranslatedState:
@@ -63,7 +44,7 @@ class TranslatedState:
             ValueError('Invalid argument type.')
 
         translator = Translator()
-        tasks = [translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
+        tasks = [self._translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
         results = await asyncio.gather(*tasks)
 
         log(f'[TranslatedState][translated_async] {results=}')
@@ -72,6 +53,14 @@ class TranslatedState:
                 'de': results[1],
                 'fr': results[2]
                 }
+
+    async def _translate_async(self, translator, prompt, lang) -> str:
+        # 個別の翻訳タスク
+        try:
+            result = await translator.translate(prompt, dest=lang)
+            return result.text
+        except:
+            return ''
 
 @ft.component
 def TranslatedView(state: TranslatedState) -> ft.Control:
@@ -89,6 +78,5 @@ def AppView() -> list[ft.Control]:
             PromptForm(translated.translate_async),
             TranslatedView(translated)
             ]
-
 
 ft.run(lambda page: page.render(AppView))
