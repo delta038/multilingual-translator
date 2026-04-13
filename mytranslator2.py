@@ -145,6 +145,7 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
                         ft.Row(
                             [
                                 ft.Dropdown(
+                                    width=220,
                                     value=lang_id,
                                     options=[ft.DropdownOption(key=k, text=v) for k, v in googletrans.LANGUAGES.items()],
                                     on_select=lambda e: set_lang_id(str(e.data)),
@@ -175,9 +176,13 @@ def AppView() -> list[ft.Control]:
     log(f'[AppView] rendered. translated={translated.translated}')
 
     return [
-            PromptForm(translated.translate_async, languages),
+            ft.Row(
+                [
+                    PromptForm(translated.translate_async, languages),
+                    LanguagesSelectionView(languages)
+                    ]
+                ),
             TranslatedView(translated),
-            LanguagesSelectionView(languages)
             ]
 
 ft.run(lambda page: page.render(AppView))
