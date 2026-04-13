@@ -3,73 +3,13 @@ from googletrans import Translator
 import googletrans
 import asyncio
 from dataclasses import dataclass, field
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 
 DEBUG = True
 
 def log(message: str):
     if DEBUG:
         print(message)
-
-@ft.component
-def PromptForm(translate_async) -> ft.Control:
-    prompt, set_prompt = ft.use_state('')
-    is_progressing, set_is_progressing = ft.use_state(False)
-
-    def update(new_prompt):
-        set_prompt(new_prompt)
-        log(f'{new_prompt=}')
-
-    async def execute_async(e):
-        log(f'[execute_async] called. {prompt=}')
-        
-        set_is_progressing(True)
-        await translate_async(prompt)
-        set_is_progressing(False)
-
-    if is_progressing:
-        return ft.Row(
-                controls=[
-                    ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value), read_only=True),
-                    ft.ProgressRing()
-                    ]
-                )
-
-    return ft.Row(
-            controls=[
-                ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value)),
-                ft.Button('翻訳', on_click=execute_async)
-                ]
-            )
-
-@ft.observable
-@dataclass
-class TranslatedState:
-    translated: dict = field(default_factory=dict)
-
-    async def translate_async(self, prompt: str):
-        log(f'[TranslatedState][translated_async] called. {prompt=}')
-        if not isinstance(prompt, str):
-            ValueError('Invalid argument type.')
-
-        translator = Translator()
-        tasks = [self._translate_async(translator, prompt, lang) for lang in ['en', 'de', 'fr']]
-        results = await asyncio.gather(*tasks)
-
-        log(f'[TranslatedState][translated_async] {results=}')
-        self.translated = {
-                'en': results[0],
-                'de': results[1],
-                'fr': results[2]
-                }
-
-    async def _translate_async(self, translator, prompt, lang) -> str:
-        # 個別の翻訳タスク
-        try:
-            result = await translator.translate(prompt, dest=lang)
-            return result.text
-        except:
-            return ''
 
 @ft.observable
 @dataclass
@@ -93,6 +33,68 @@ class Languages:
         self.value = copied.copy()
         # self.value.discard(target)
         log(f'[Languages][delete] current languages {self.value}')
+
+@ft.observable
+@dataclass
+class TranslatedState:
+    translated: dict = field(default_factory=dict)
+
+    async def translate_async(self, prompt: str, target_langs: set[str]):
+        log(f'[TranslatedState][translated_async] called. {prompt=}, {target_langs=}')
+
+        if not isinstance(prompt, str):
+            ValueError(f'Invalid argument type: expected str, but {type(prompt)}')
+
+        if not isinstance(target_langs, set):
+            ValueError(f'Invalid argument type: expected set, but {type(target_langs)}')
+
+        langs = list(target_langs)
+        translator = Translator()
+        tasks = [self._translate_async(translator, prompt, lang) for lang in list(target_langs)]
+        results = await asyncio.gather(*tasks)
+
+        log(f'[TranslatedState][translate_async] {results=}')
+        self.translated = {lang_id: result for lang_id, result in zip(langs, results)}
+    
+
+    async def _translate_async(self, translator, prompt, lang) -> str:
+        # 個別の翻訳タスク
+        try:
+            result = await translator.translate(prompt, dest=lang)
+            return result.text
+        except:
+            return ''
+
+@ft.component
+def PromptForm(translate_async: Callable[[str, set[str]], Coroutine], languages: Languages) -> ft.Control:
+    prompt, set_prompt = ft.use_state('')
+    is_progressing, set_is_progressing = ft.use_state(False)
+
+    def update(new_prompt):
+        set_prompt(new_prompt)
+        log(f'{new_prompt=}')
+
+    async def execute_async(e):
+        log(f'[execute_async] called. {prompt=}')
+        
+        set_is_progressing(True)
+        await translate_async(prompt, languages.value)
+        set_is_progressing(False)
+
+    if is_progressing:
+        return ft.Row(
+                controls=[
+                    ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value), read_only=True),
+                    ft.ProgressRing()
+                    ]
+                )
+
+    return ft.Row(
+            controls=[
+                ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value)),
+                ft.Button('翻訳', on_click=execute_async)
+                ]
+            )
 
 @ft.component
 def LanguagesSelectionForm(lang: str, delete_from_store: Callable[[str], None]) -> ft.Control:
@@ -173,7 +175,7 @@ def AppView() -> list[ft.Control]:
     log(f'[AppView] rendered. translated={translated.translated}')
 
     return [
-            PromptForm(translated.translate_async),
+            PromptForm(translated.translate_async, languages),
             TranslatedView(translated),
             ft.Dropdown(
                 width=220,
