@@ -177,10 +177,6 @@ def AppView() -> list[ft.Control]:
     return [
             PromptForm(translated.translate_async, languages),
             TranslatedView(translated),
-            ft.Dropdown(
-                width=220,
-                options=[ft.DropdownOption(key=k, text=v) for k, v in googletrans.LANGUAGES.items()]
-                ),
             LanguagesSelectionView(languages)
             ]
 
