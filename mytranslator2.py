@@ -172,8 +172,45 @@ def TranslatedView(state: TranslatedState) -> ft.Control:
 @ft.component
 def AppView() -> list[ft.Control]:
     translated, _ = ft.use_state(TranslatedState())
-    languages, _ = ft.use_state(Languages())
-    log(f'[AppView] rendered. translated={translated.translated}')
+    languages, set_languages = ft.use_state(Languages())
+    is_first, set_is_first = ft.use_state(True)
+    log(f'[AppView] rendered. translated={translated.translated} languages={languages.value}')
+
+    def get_langs():
+        log(f'[AppView][get_languages] called.')
+        
+        async def retrieve_from_shared_preferences():
+            if not await ft.SharedPreferences().contains_key('languages'):
+                log(f'[AppView][retrieve_from_shared_preferences] key does not exist.')
+                return
+
+            langs = await ft.SharedPreferences().get('languages')
+            log(f'[AppView][retrieve_from_shared_preferences] {langs=}, type: {type(langs)}')
+            if isinstance(langs, list) and langs:
+                stored_languages = Languages()
+                for lang in langs:
+                    stored_languages.append(lang)
+                set_languages(stored_languages)
+
+        task = asyncio.create_task(retrieve_from_shared_preferences())
+        return lambda: task.cancel()
+
+    ft.use_effect(get_langs, [])
+
+    def set_langs():
+        log(f'[AppView][set_languages] called.')
+        
+        async def set_to_shared_preferences():
+            log(f'[AppView][set_languages][set_to_shared_preferences] called.')
+            if is_first:
+                set_is_first(False)
+                return
+            await ft.SharedPreferences().set('languages', list(languages.value))
+
+        task = asyncio.create_task(set_to_shared_preferences())
+        return lambda: task.cancel()
+
+    ft.use_effect(set_langs, [languages])
 
     return [
             ft.Row(
