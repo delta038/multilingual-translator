@@ -5,7 +5,7 @@ import asyncio
 from dataclasses import dataclass, field
 from collections.abc import Callable, Coroutine
 
-DEBUG = True
+DEBUG = False
 
 def log(message: str):
     if DEBUG:
@@ -70,6 +70,21 @@ def PromptForm(translate_async: Callable[[str, set[str]], Coroutine], languages:
     prompt, set_prompt = ft.use_state('')
     is_progressing, set_is_progressing = ft.use_state(False)
 
+    def retrieve():
+        async def retrieve_async():
+            log('[PromptForm][retrieve] called.')
+            if not await ft.SharedPreferences().contains_key('languages'):
+                return
+
+            lang_ids = await ft.SharedPreferences().get('languages')
+            for lang_id in lang_ids:
+                languages.append(lang_id)
+
+        task = asyncio.create_task(retrieve_async())
+        return lambda: task.cancel()
+
+    ft.use_effect(retrieve, [])
+
     def update(new_prompt):
         set_prompt(new_prompt)
         log(f'{new_prompt=}')
@@ -122,6 +137,21 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
     is_open_popup, set_is_open_popup = ft.use_state(False)
     lang_id, set_lang_id = ft.use_state('')
 
+    is_first = ft.use_ref(True)
+
+    def save():
+        if is_first.current:
+            is_first.current = False
+            return
+        log(f'[LanguagesSelectionView][save] called. languages={languages.value}')
+        async def save_async():
+            await ft.SharedPreferences().set('languages', list(languages.value))
+
+        task = asyncio.create_task(save_async())
+        return lambda: task.cancel()
+
+    ft.use_effect(save, [languages.value])
+
     def show_popup():
         log(f'[LanguagesSelectionView][show_popup] called.')
         set_is_open_popup(True)
@@ -172,52 +202,16 @@ def TranslatedView(state: TranslatedState) -> ft.Control:
 @ft.component
 def AppView() -> list[ft.Control]:
     translated, _ = ft.use_state(TranslatedState())
-    languages, set_languages = ft.use_state(Languages())
-    is_first, set_is_first = ft.use_state(True)
+    languages, _ = ft.use_state(Languages())
     log(f'[AppView] rendered. translated={translated.translated} languages={languages.value}')
-
-    def get_langs():
-        log(f'[AppView][get_languages] called.')
-        
-        async def retrieve_from_shared_preferences():
-            if not await ft.SharedPreferences().contains_key('languages'):
-                log(f'[AppView][retrieve_from_shared_preferences] key does not exist.')
-                return
-
-            langs = await ft.SharedPreferences().get('languages')
-            log(f'[AppView][retrieve_from_shared_preferences] {langs=}, type: {type(langs)}')
-            if isinstance(langs, list) and langs:
-                stored_languages = Languages()
-                for lang in langs:
-                    stored_languages.append(lang)
-                set_languages(stored_languages)
-
-        task = asyncio.create_task(retrieve_from_shared_preferences())
-        return lambda: task.cancel()
-
-    ft.use_effect(get_langs, [])
-
-    def set_langs():
-        log(f'[AppView][set_languages] called.')
-        
-        async def set_to_shared_preferences():
-            log(f'[AppView][set_languages][set_to_shared_preferences] called.')
-            if is_first:
-                set_is_first(False)
-                return
-            await ft.SharedPreferences().set('languages', list(languages.value))
-
-        task = asyncio.create_task(set_to_shared_preferences())
-        return lambda: task.cancel()
-
-    ft.use_effect(set_langs, [languages])
 
     return [
             ft.Row(
                 [
                     PromptForm(translated.translate_async, languages),
                     LanguagesSelectionView(languages)
-                    ]
+                    ],
+                scroll=ft.ScrollMode.ADAPTIVE,
                 ),
             TranslatedView(translated),
             ]
