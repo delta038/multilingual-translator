@@ -209,11 +209,12 @@ def AppView() -> list[ft.Control]:
             ft.Row(
                 [
                     PromptForm(translated.translate_async, languages),
-                    LanguagesSelectionView(languages)
+                    LanguagesSelectionView(languages),
+                    TranslatedView(translated)
                     ],
                 scroll=ft.ScrollMode.ADAPTIVE,
+                margin=10,
                 ),
-            TranslatedView(translated),
             ]
 
 ft.run(lambda page: page.render(AppView))
