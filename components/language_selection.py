@@ -26,6 +26,13 @@ def LanguagesSelectionForm(lang: str, delete_from_store: Callable[[str], None]) 
 
 @ft.component
 def LanguagesSelectionView(languages: Languages) -> ft.Control:
+    """
+    言語設定ボタンとダイアログを管理するコンポーネント。
+    
+    FletのAlertDialogは、条件分岐(if)でコンポーネント自体を生成・破棄するよりも、
+    常にコントロールツリーに配置しておき `open` プロパティで表示・非表示を切り替える構成にすることで、
+    イベントハンドラ（on_click, on_dismiss）の動作と状態管理が安定します。
+    """
     log(f'[LanguagesSelectionView] rendered.')
     
     is_open_popup, set_is_open_popup = ft.use_state(False)
@@ -59,6 +66,7 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
         if lang_id:
             languages.append(lang_id)
 
+    # 設定ボタンとダイアログをセットで返し、ダイアログは open プロパティで制御する
     return ft.Row(
         [
             ft.IconButton(icon=ft.Icons.SETTINGS, on_click=show_popup),
