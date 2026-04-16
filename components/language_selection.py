@@ -20,7 +20,11 @@ def LanguagesSelectionForm(lang: str, delete_from_store: Callable[[str], None]) 
                     value=lang,
                     options=[ft.DropdownOption(key=k, text=v) for k, v in googletrans.LANGUAGES.items()]
                 ),
-                ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e: delete())
+                ft.IconButton(
+                    icon=ft.Icons.DELETE,
+                    tooltip="言語を削除",
+                    on_click=lambda e: delete()
+                )
                 ]
             )
 
@@ -69,14 +73,32 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
     # 設定ボタンとダイアログをセットで返し、ダイアログは open プロパティで制御する
     return ft.Row(
         [
-            ft.IconButton(icon=ft.Icons.SETTINGS, on_click=show_popup),
+            ft.IconButton(
+                icon=ft.Icons.SETTINGS,
+                tooltip="翻訳言語の設定",
+                on_click=show_popup
+            ),
             ft.AlertDialog(
                 title=ft.Text('言語選択'),
                 content=ft.Column(
                     [
+                        ft.Row(
+                            [
+                                ft.Text('設定済みの言語:'),
+                                ],
+                            margin=ft.margin.only(top=20),
+                            ),
                         ft.Column(
-                            [LanguagesSelectionForm(lang, languages.delete) for lang in languages.value]),
-                        
+                            [
+                                LanguagesSelectionForm(lang, languages.delete) for lang in languages.value
+                                ]
+                            ),
+                        ft.Row(
+                            [
+                                ft.Text('言語を追加:'),
+                                ],
+                            margin=ft.Margin.only(top=20),
+                            ),                        
                         ft.Row(
                             [
                                 ft.Dropdown(
@@ -85,9 +107,13 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
                                     options=[ft.DropdownOption(key=k, text=v) for k, v in googletrans.LANGUAGES.items()],
                                     on_select=lambda e: set_lang_id(str(e.data)),
                                     ),
-                                ft.IconButton(icon=ft.Icons.ADD, on_click=lambda e: add())
+                                ft.IconButton(
+                                    icon=ft.Icons.ADD,
+                                    tooltip="言語を追加",
+                                    on_click=lambda e: add()
+                                )
                                 ]
-                            )
+                            ),
                      ],
                     tight=True,
                     ),
