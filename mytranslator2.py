@@ -12,18 +12,23 @@ def AppView() -> list[ft.Control]:
     log(f'[AppView] rendered. translated={translated.translated} languages={languages.value}')
 
     return [
-            ft.Column(
-                [
-                    ft.Row([
-                        PromptForm(translated.translate_async, languages),
-                        LanguagesSelectionView(languages),
-                        ]),
-                    TranslatedView(translated),
-                    ],
-                scroll=ft.ScrollMode.ADAPTIVE,
-                margin=10
-                )
-        ]
+        ft.Row(
+            [
+                ft.Column(
+                    [
+                        ft.Row([
+                            PromptForm(translated.translate_async, languages),
+                            LanguagesSelectionView(languages),
+                            ]),
+                        TranslatedView(translated),
+                        ],
+                    scroll=ft.ScrollMode.ADAPTIVE,
+                    margin=10,
+                    )
+            ],
+            scroll=ft.ScrollMode.ADAPTIVE,
+        )
+    ]
 
 if __name__ == '__main__':
     ft.run(lambda page: page.render(AppView))
