@@ -60,13 +60,37 @@ def AppView() -> ft.Control:
     log(f"[AppView] rendered. translated={translated.translated}")
 
     current_tab_type, set_current_tab_type = ft.use_state(TabType.TRANSLATE)
-    show_notification, set_show_notification = ft.use_state(True)
 
-    async def hide_notification():
+    # 通知用のアニメーション状態
+    show_notification, set_show_notification = ft.use_state(True)
+    notification_opacity, set_notification_opacity = ft.use_state(0.0)
+    notification_bottom, set_notification_bottom = ft.use_state(60)
+
+    async def animate_notification():
+        # 起動アニメーション: フェードイン + 少し上へ
+        await asyncio.sleep(0.1)
+        set_notification_opacity(1.0)
+        set_notification_bottom(95)
+        await asyncio.sleep(0.4)
+        # 本来の位置へ落ち着く
+        set_notification_bottom(80)
+
+        # 10秒待機
         await asyncio.sleep(10)
+
+        # 終了アニメーション
+        await close_notification()
+
+    async def close_notification():
+        # 終了アニメーション: 一度浮き上がってから、戻りつつフェードアウト
+        set_notification_bottom(95)
+        await asyncio.sleep(0.3)
+        set_notification_opacity(0.0)
+        set_notification_bottom(80)
+        await asyncio.sleep(0.3)
         set_show_notification(False)
 
-    ft.use_effect(lambda: {asyncio.create_task(hide_notification())}, [])
+    ft.use_effect(lambda: {asyncio.create_task(animate_notification())}, [])
 
     main_content: ft.Control = TranslationView()
 
@@ -121,7 +145,7 @@ def AppView() -> ft.Control:
                             ft.IconButton(
                                 ft.Icons.CLOSE,
                                 icon_color=ft.Colors.WHITE,
-                                on_click=lambda _: set_show_notification(False),
+                                on_click=lambda _: asyncio.create_task(close_notification()),
                             ),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -130,11 +154,13 @@ def AppView() -> ft.Control:
                     padding=10,
                     margin=10,
                     border_radius=10,
-                    bottom=80,
+                    bottom=notification_bottom,
                     left=10,
                     right=10,
+                    opacity=notification_opacity,
                     visible=show_notification,
                     animate_opacity=300,
+                    animate=ft.Animation(400, ft.AnimationCurve.DECELERATE),
                     shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.BLACK26),
                 ),
             ]
