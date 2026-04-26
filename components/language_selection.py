@@ -2,6 +2,7 @@ import flet as ft
 import googletrans
 import asyncio
 from typing import Callable
+from contexts import LanguagesContext
 from utils import log
 from models import Languages
 
@@ -29,7 +30,7 @@ def LanguagesSelectionForm(lang: str, delete_from_store: Callable[[str], None]) 
             )
 
 @ft.component
-def LanguagesSelectionView(languages: Languages) -> ft.Control:
+def LanguagesSelectionView() -> ft.Control:
     """
     言語設定ボタンとダイアログを管理するコンポーネント。
     
@@ -43,6 +44,8 @@ def LanguagesSelectionView(languages: Languages) -> ft.Control:
     lang_id, set_lang_id = ft.use_state('')
 
     is_first = ft.use_ref(True)
+
+    languages: Languages = ft.use_context(LanguagesContext)
 
     def save():
         if is_first.current:

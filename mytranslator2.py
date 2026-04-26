@@ -11,16 +11,15 @@ from models import Languages
 @ft.component
 def AppView() -> ft.Control:
     translated, _ = ft.use_state(TranslatedState())
-    languages, _ = ft.use_state(Languages())
-    log(f'[AppView] rendered. translated={translated.translated} languages={languages.value}')
+    log(f'[AppView] rendered. translated={translated.translated}')
 
     return ft.Container(
             content=ft.Row([
                 ft.Column(
                     [
                         ft.Row([
-                            PromptForm(translated.translate_async, languages),
-                            LanguagesSelectionView(languages),
+                            PromptForm(translated.translate_async),
+                            LanguagesSelectionView(),
                             ]),
                         TranslatedView(translated)
                         ],
@@ -32,13 +31,26 @@ def AppView() -> ft.Control:
                 )
             )
 
+async def generate_languages() -> Languages:
+    languages = Languages()
+    
+    # localStorageから値を取得
+    if not await ft.SharedPreferences().contains_key('languages'):
+        return languages
+
+    lang_ids = await ft.SharedPreferences().get('languages')
+    for lang_id in lang_ids:
+        languages.append(lang_id)
+
+    return languages
+
 async def main(page: ft.Page):
     # localStorageから値を取得
-
+    languages: Languages = await generate_languages()
 
     # page.renderを使用して、ルートコンポーネントとして描画する
     page.render(lambda: provide([
-        (LanguagesContext, Languages())
+        (LanguagesContext, languages)
         ], AppView))
 
 if __name__ == '__main__':

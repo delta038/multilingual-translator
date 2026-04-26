@@ -1,28 +1,15 @@
 import flet as ft
 import asyncio
 from typing import Callable, Coroutine
+from contexts import LanguagesContext
 from utils import log
 from models import Languages
 
 @ft.component
-def PromptForm(translate_async: Callable[[str, set[str]], Coroutine], languages: Languages) -> ft.Control:
+def PromptForm(translate_async: Callable[[str, set[str]], Coroutine]) -> ft.Control:
     prompt, set_prompt = ft.use_state('')
     is_progressing, set_is_progressing = ft.use_state(False)
-
-    def retrieve():
-        async def retrieve_async():
-            log('[PromptForm][retrieve] called.')
-            if not await ft.SharedPreferences().contains_key('languages'):
-                return
-
-            lang_ids = await ft.SharedPreferences().get('languages')
-            for lang_id in lang_ids:
-                languages.append(lang_id)
-
-        task = asyncio.create_task(retrieve_async())
-        return lambda: task.cancel()
-
-    ft.use_effect(retrieve, [])
+    languages: Languages = ft.use_context(LanguagesContext)
 
     def update(new_prompt):
         set_prompt(new_prompt)
