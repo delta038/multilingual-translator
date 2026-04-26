@@ -1,3 +1,4 @@
+from os.path import expanduser
 from typing import Optional
 import flet as ft
 from utils import log
@@ -21,25 +22,36 @@ def TranslationView() -> ft.Control:
     log(f'[MainView] rendered.')
 
     return ft.Container(
-            content = ft.Row([
+            content=ft.Row([
                 ft.Column([
-                    ft.Row([
-                        PromptForm(translated.translate_async),
-                        LanguagesSelectionView(),
-                        ]),
+                    PromptForm(translated.translate_async),
                     TranslatedView(translated)
                     ],
                     scroll=ft.ScrollMode.ADAPTIVE,
                     margin=10,
+                    expand=True
                     )
                 ],
                 scroll=ft.ScrollMode.ADAPTIVE,
-                )
+                expand=True
+                ),
+            expand=True
             )
 
 @ft.component
 def ConfigurationView() -> ft.Control:
-    return ft.Text('Configuration View')
+    return ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    ft.Text('翻訳先言語設定'),
+                    LanguagesSelectionView(),
+                    ],
+                       expand=True)
+                ],
+                expand=True
+                ),
+            expand=True
+            )
 
 @ft.component
 def AppView() -> ft.Control:
@@ -48,7 +60,7 @@ def AppView() -> ft.Control:
 
     current_tab_type, set_current_tab_type = ft.use_state(TabType.TRANSLATE)
     
-    main_content: Optional[ft.Control] = None
+    main_content: ft.Control = TranslationView()
 
     if current_tab_type == TabType.TRANSLATE:
         main_content = TranslationView()
