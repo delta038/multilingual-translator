@@ -1,3 +1,4 @@
+from typing import Optional
 import flet as ft
 from utils import log
 from models import TranslatedState, Languages
@@ -8,27 +9,68 @@ from utils import provide
 from contexts import LanguagesContext
 from models import Languages
 
+from enum import Enum
+
+class TabType(Enum):
+    TRANSLATE = 0
+    CONFIGURATION = 1
+
 @ft.component
-def AppView() -> ft.Control:
+def TranslationView() -> ft.Control:
     translated, _ = ft.use_state(TranslatedState())
-    log(f'[AppView] rendered. translated={translated.translated}')
+    log(f'[MainView] rendered.')
 
     return ft.Container(
-            content=ft.Row([
-                ft.Column(
-                    [
-                        ft.Row([
-                            PromptForm(translated.translate_async),
-                            LanguagesSelectionView(),
-                            ]),
-                        TranslatedView(translated)
-                        ],
+            content = ft.Row([
+                ft.Column([
+                    ft.Row([
+                        PromptForm(translated.translate_async),
+                        LanguagesSelectionView(),
+                        ]),
+                    TranslatedView(translated)
+                    ],
                     scroll=ft.ScrollMode.ADAPTIVE,
                     margin=10,
                     )
                 ],
                 scroll=ft.ScrollMode.ADAPTIVE,
                 )
+            )
+
+@ft.component
+def ConfigurationView() -> ft.Control:
+    return ft.Text('Configuration View')
+
+@ft.component
+def AppView() -> ft.Control:
+    translated, _ = ft.use_state(TranslatedState())
+    log(f'[AppView] rendered. translated={translated.translated}')
+
+    current_tab_type, set_current_tab_type = ft.use_state(TabType.TRANSLATE)
+    
+    main_content: Optional[ft.Control] = None
+
+    if current_tab_type == TabType.TRANSLATE:
+        main_content = TranslationView()
+    elif current_tab_type == TabType.CONFIGURATION:
+        main_content = ConfigurationView()
+
+    return ft.Container(
+            content=ft.Column([
+                main_content,
+                ft.BottomAppBar(
+                    bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+                    content=ft.Row(
+                        alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                        controls=[
+                            ft.IconButton(ft.Icons.SEARCH, on_click=lambda e: set_current_tab_type(TabType.TRANSLATE)),
+                            ft.IconButton(ft.Icons.SETTINGS, on_click=lambda e: set_current_tab_type(TabType.CONFIGURATION))
+                            ]
+                        )
+                    )
+                ],
+                expand=True),
+            expand=True
             )
 
 async def generate_languages() -> Languages:
