@@ -67,27 +67,26 @@ def AppView() -> ft.Control:
     notification_bottom, set_notification_bottom = ft.use_state(60)
 
     async def animate_notification():
-        # 起動アニメーション: フェードイン + 少し上へ
-        await asyncio.sleep(0.1)
+        # 起動アニメーション: 下から浮き上がりながらフェードイン
+        await asyncio.sleep(0.3)
         set_notification_opacity(1.0)
-        set_notification_bottom(95)
-        await asyncio.sleep(0.4)
+        set_notification_bottom(100)
+        await asyncio.sleep(0.6)  # アニメーション完了を待つ
+        
         # 本来の位置へ落ち着く
         set_notification_bottom(80)
-
-        # 10秒待機
         await asyncio.sleep(10)
 
         # 終了アニメーション
         await close_notification()
 
     async def close_notification():
-        # 終了アニメーション: 一度浮き上がってから、戻りつつフェードアウト
-        set_notification_bottom(95)
-        await asyncio.sleep(0.3)
+        # 終了アニメーション: 一度浮き上がってから、沈みつつフェードアウト
+        set_notification_bottom(100)
+        await asyncio.sleep(0.5)
         set_notification_opacity(0.0)
-        set_notification_bottom(80)
-        await asyncio.sleep(0.3)
+        set_notification_bottom(60)
+        await asyncio.sleep(0.6)
         set_show_notification(False)
 
     ft.use_effect(lambda: {asyncio.create_task(animate_notification())}, [])
@@ -142,7 +141,7 @@ def AppView() -> ft.Control:
                                     ),
                                 ],
                                 spacing=10,
-                                expand=True
+                                expand=True,
                             ),
                             ft.IconButton(
                                 ft.Icons.CLOSE,
@@ -161,8 +160,7 @@ def AppView() -> ft.Control:
                     right=10,
                     opacity=notification_opacity,
                     visible=show_notification,
-                    animate_opacity=300,
-                    animate=ft.Animation(400, ft.AnimationCurve.DECELERATE),
+                    animate=ft.Animation(600, ft.AnimationCurve.EASE_OUT),
                     shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.BLACK26),
                 ),
             ]
