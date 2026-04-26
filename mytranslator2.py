@@ -1,12 +1,9 @@
-from os.path import expanduser
-from typing import Optional
 import asyncio
 import flet as ft
 from utils import log
 from models import TranslatedState, Languages
-from components.prompt_form import PromptForm
-from components.language_selection import LanguagesSelectionView
-from components.translated_view import TranslatedView
+from components.translation_view import TranslationView
+from components.configuration_view import ConfigurationView
 from utils import provide
 from contexts import LanguagesContext
 from models import Languages
@@ -16,43 +13,6 @@ from enum import Enum
 class TabType(Enum):
     TRANSLATE = 0
     CONFIGURATION = 1
-
-@ft.component
-def TranslationView() -> ft.Control:
-    translated, _ = ft.use_state(TranslatedState())
-    log(f'[MainView] rendered.')
-
-    return ft.Container(
-            content=ft.Row([
-                ft.Column([
-                    PromptForm(translated.translate_async),
-                    TranslatedView(translated)
-                    ],
-                    scroll=ft.ScrollMode.ADAPTIVE,
-                    margin=10,
-                    expand=True
-                    )
-                ],
-                scroll=ft.ScrollMode.ADAPTIVE,
-                expand=True
-                ),
-            expand=True
-            )
-
-@ft.component
-def ConfigurationView() -> ft.Control:
-    return ft.Container(
-            content=ft.Column([
-                ft.Row([
-                    ft.Text('翻訳先言語設定'),
-                    LanguagesSelectionView(),
-                    ],
-                       expand=True)
-                ],
-                expand=True
-                ),
-            expand=True
-            )
 
 @ft.component
 def AppView() -> ft.Control:
