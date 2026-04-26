@@ -1,5 +1,5 @@
 import flet as ft
-from language_selection import LanguagesSelectionView
+from .language_selection import LanguagesSelectionView
 
 @ft.component
 def ConfigurationView() -> ft.Control:

@@ -32,7 +32,7 @@ def PromptForm(translate_async: Callable[[str, set[str]], Coroutine]) -> ft.Cont
 
     return ft.Row(
             controls=[
-                ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value)),
+                ft.TextField(label='日本語を入力', value=prompt, on_change=lambda e: update(e.control.value), on_submit=execute_async, multiline=True, shift_enter=True),
                 ft.Button('翻訳', on_click=execute_async)
                 ]
             )
