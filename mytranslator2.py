@@ -94,7 +94,7 @@ def AppView() -> ft.Control:
                                 [
                                     ft.Icon(ft.Icons.NEW_RELEASES, color=ft.Colors.WHITE),
                                     ft.Text(
-                                        "新機能：翻訳画面と設定画面をタブで分割しました(2026/4/26)",
+                                        "新機能：翻訳画面と設定画面をタブで分割しました(2026/4/26)\n複数行入力できるようにしました(2026/4/26)",
                                         color=ft.Colors.WHITE,
                                         weight=ft.FontWeight.BOLD,
                                         expand=True,
